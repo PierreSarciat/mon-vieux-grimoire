@@ -23,7 +23,9 @@ mongoose.connect(process.env.MONGODB_URL)
 /**********initialisation de l api******* */
 
 const app = express();
+
 /*app.use(cors());const cors = require('cors');*/
+
 app.use(cors({
     origin: 'http://localhost:3000', // autorise le frontend React
     methods: ['GET','POST','PUT','DELETE'], // méthodes autorisées
@@ -33,65 +35,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-/**********test routes************** */
-
-app.get('/', (req, res) => res.send('salut'));
-
-
-/**********route GET pour récupérer les livres***** */
-
-app.get('/api/books', async (req, res) => {
-  try {
-    const books = await Thing.find();
-    res.status(200).json(books);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
-/*****************route POST pour envoyer un livre*********** */
-
-
-app.post('/api/books', async (req, res) => {
-  console.log('Requête POST reçue:', req.body);
-  try {
-
-    // Crée un nouveau livre
-    
-    const newBook = new Thing({
-      userId: req.body.userId,
-      title: req.body.title,
-      author: req.body.author,
-      imageUrl: req.body.imageUrl,
-      year: req.body.year,
-      genre: req.body.genre,
-      ratings: req.body.ratings || [],
-      averageRating: req.body.averageRating || 0
-    });
-
-    // Sauvegarde dans MongoDB
-
-    await newBook.save();
-
-    // Répond au frontend avec le livre créé
-
-    res.status(201).json({
-      message: 'Livre ajouté avec succès !',
-      book: newBook
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ error: err.message });
-  }
-});
-
-
-
-/**************route pour autres requêtes******* */
-
-app.use((req, res) => res.status(404).send('route non trouvée'));
 
 /**********démarrage serveur********* */
 
