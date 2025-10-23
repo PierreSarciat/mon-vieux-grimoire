@@ -7,13 +7,16 @@ const thingSchema = mongoose.Schema({
   imageUrl: { type: String, required: true },
   year: { type: Number, required: true },
   genre: { type: String, required: true },
-  ratings: [
-    {
-      userId: { type: String, required: true },
-      grade: { type: Number, required: true }
-    }
-  ], // notes données à un livre
-  averageRating: { type: Number, required: true }
+ ratings: {
+    type: [
+      {
+        userId: { type: String, required: true },
+        grade: { type: Number, required: true }
+      }
+    ],
+    default: []
+  },
+  averageRating: { type: Number, default: 0 }
 });
 
 module.exports = mongoose.model('Thing', thingSchema);
