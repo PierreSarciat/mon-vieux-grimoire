@@ -6,7 +6,7 @@ const Thing = require('../models/thing');
 
 /**********route GET pour récupérer les livres***** */
 
-router.get('/api/books', async (req, res) => {
+router.get('/books', async (req, res) => {
   try {
     const books = await Thing.find();
     res.status(200).json(books);
@@ -17,7 +17,7 @@ router.get('/api/books', async (req, res) => {
 
 /*********route GET pour récuperer un livre par ID******* */
 
-router.get('/api/books/:id', async (req, res) => {
+router.get('/books/:id', async (req, res) => {
    console.log("ID reçu:", req.params.id);
   try {
     const book = await Thing.findById(req.params.id);
@@ -31,7 +31,7 @@ router.get('/api/books/:id', async (req, res) => {
 /*****************route POST pour envoyer un livre*********** */
 
 
-router.post('/api/books', async (req, res) => {
+router.post('/books', async (req, res) => {
   console.log('Requête POST reçue:', req.body);
   try {
 
@@ -68,7 +68,7 @@ router.post('/api/books', async (req, res) => {
 /*************route PUT************ */
 
 
-router.put('/api/books/:id', async (req, res) => {
+router.put('/books/:id', async (req, res) => {
   try {
 
     // findByIdAndUpdate : modifie le document et retourne le nouveau
@@ -95,7 +95,7 @@ router.put('/api/books/:id', async (req, res) => {
 
 /*************route DELETE************/
 
-router.delete('/api/books/:id', async (req, res) => {
+router.delete('/books/:id', async (req, res) => {
   try {
     const deletedBook = await Thing.findByIdAndDelete(req.params.id);
 
