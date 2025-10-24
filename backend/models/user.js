@@ -6,9 +6,6 @@ const userSchema = mongoose.Schema({
   password: { type: String, required: true }
 });
 
-// Création de l'index unique au niveau MongoDB
-userSchema.index({ email: 1 }, { unique: true });
-
 // Middleware pour hasher le mot de passe avant sauvegarde
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();

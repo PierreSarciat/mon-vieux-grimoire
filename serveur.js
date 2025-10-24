@@ -1,6 +1,7 @@
 /*********** Import des modules nécessaires ***********/
 require('dotenv').config();
 const express = require('express');
+const path = require('path');  
 const cors = require('cors');
 const mongoose = require('mongoose');
 
@@ -11,7 +12,7 @@ const userRoutes = require('./backend/routes/user'); // <-- ajout des routes uti
 /*********** Connexion à MongoDB ***********/
 mongoose.connect(process.env.MONGODB_URL)
   .then(() => console.log('✅ Connexion MongoDB réussie !'))
-  .catch(err => console.error('❌ Erreur de connexion MongoDB :', err));
+  .catch(err => console.error(' Erreur de connexion MongoDB :', err));
 
 const app = express();
 
@@ -26,12 +27,21 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+/*********** Servir le dossier images en statique ***********/
+app.use('/images', express.static(path.join(__dirname, 'images')));
+
 /*********** Définition des routes ***********/
 // Routes pour les livres (stuff)
-app.use('/api', stuffRoutes);
+app.use('/api/books', stuffRoutes);
 
 // Routes pour l'authentification
 app.use('/api/auth', userRoutes);
+
+
+/***********gestion des images********** */
+
+app.use('/images', express.static(path.join(__dirname, 'images')));
+
 
 /*********** Démarrage du serveur ***********/
 const PORT = process.env.SERVER_PORT || 1515;
