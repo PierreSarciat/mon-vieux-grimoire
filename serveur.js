@@ -38,11 +38,6 @@ app.use('/api/books', stuffRoutes);
 app.use('/api/auth', userRoutes);
 
 
-/***********gestion des images********** */
-
-app.use('/images', express.static(path.join(__dirname, 'images')));
-
-
 /*********** Démarrage du serveur ***********/
 const PORT = process.env.SERVER_PORT || 1515;
 
