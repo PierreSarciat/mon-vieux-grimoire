@@ -1,7 +1,8 @@
 const Thing = require('../models/thing');
 const path = require('path');
 const fs = require('fs');
-
+// Définir le chemin absolu vers le dossier images
+const imagesPath = path.join(__dirname, '..', '..', 'src', 'images');
 
 /**********************
  * Récupérer tous les livres
@@ -131,7 +132,8 @@ exports.deleteThing = async (req, res) => {
     // Supprimer l'image associée s'il y en a une
     if (thing.imageUrl) {
       const filename = thing.imageUrl.split('/images/')[1];
-      const imagePath = path.join(__dirname, '..', 'images', filename);
+      const imagePath = path.join(imagesPath, filename);
+
 
       // On supprime le fichier en asynchrone
       fs.unlink(imagePath, async (err) => {

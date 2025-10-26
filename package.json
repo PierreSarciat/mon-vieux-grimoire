@@ -34,8 +34,8 @@
   "scripts": {
     "start": "react-scripts start",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "startserv": "node -r dotenv/config serveur.js",
-    "dev": "npx nodemon -r dotenv/config serveur.js"
+    "startserv": "node -r dotenv/config backend/serveur.js",
+    "dev": "npx nodemon -r dotenv/config backend/serveur.js"
   },
   "browserslist": {
     "production": [

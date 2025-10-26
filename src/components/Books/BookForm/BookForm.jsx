@@ -44,29 +44,42 @@ function BookForm({ book, validate }) {
   }, [formState]);
 
   const onSubmit = async (data) => {
-    // When we create a new book
-    if (!book) {
-      if (!data.file[0]) {
+    try {
+      // Vérifier qu'une image a été ajoutée
+      if (!book && (!data.file || data.file.length === 0)) {
         alert('Vous devez ajouter une image');
+        return;
       }
-      if (!data.rating) {
-        /* eslint-disable no-param-reassign */
-        data.rating = 0;
-        /* eslint-enable no-param-reassign */
+
+      // Créer un FormData pour l'envoi multipart/form-data
+      const formData = new FormData();
+
+      // Ajouter l'image sous le champ "image" (attendu par Multer)
+      if (data.file && data.file[0]) {
+        formData.append('image', data.file[0]);
       }
-      const newBook = await addBook(data);
+
+      // Ajouter les autres données du livre sous forme JSON
+      const bookData = {
+        title: data.title,
+        author: data.author,
+        year: data.year,
+        genre: data.genre,
+        rating: data.rating || 0,
+      };
+      formData.append('thing', JSON.stringify(bookData));
+
+      // Envoyer les données au backend via addBook
+      const newBook = await addBook(formData);
+
       if (!newBook.error) {
         validate(true);
       } else {
         alert(newBook.message);
       }
-    } else {
-      const updatedBook = await updateBook(data, data.id);
-      if (!updatedBook.error) {
-        navigate('/');
-      } else {
-        alert(updatedBook.message);
-      }
+    } catch (err) {
+      console.error(err);
+      alert('Erreur lors de la création du livre.');
     }
   };
 
