@@ -2,11 +2,11 @@ const Thing = require('../models/thing');
 const path = require('path');
 const fs = require('fs');
 // Définir le chemin absolu vers le dossier images
-const imagesPath = path.join(__dirname, '..', '..', 'src', 'images');
+/*const imagesPath = path.join(__dirname, '..', '..', 'src', 'images');*/
 
-/**********************
- * Récupérer tous les livres
- **********************/
+/********************** * Récupérer tous les livres **********************/
+
+
 exports.getAllThings = async (req, res) => {
   try {
     const books = await Thing.find();
@@ -16,9 +16,9 @@ exports.getAllThings = async (req, res) => {
   }
 };
 
-/**********************
- * Récupérer un livre par ID
- **********************/
+/********************** * Récupérer un livre par ID **********************/
+
+
 exports.getOneThing = async (req, res) => {
   try {
     const book = await Thing.findById(req.params.id);
@@ -35,15 +35,22 @@ exports.getOneThing = async (req, res) => {
 
 exports.createThing = async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'Veuillez ajouter une image.' });
+    }
+
     let thingData = {};
 
-    // Si l'on utilise multer + JSON string
-    if (req.file && req.body.thing) {
-      thingData = JSON.parse(req.body.thing);
-    } else {
-      // Sinon on récupère directement depuis req.body
-      thingData = { ...req.body };
+    try {
+      if (req.body.thing) {
+        thingData = JSON.parse(req.body.thing);
+      } else {
+        return res.status(400).json({ message: 'Aucune donnée reçue.' });
+      }
+    } catch (error) {
+      return res.status(400).json({ message: 'Format invalide pour les données du livre.' });
     }
+
 
     // Supprimer les champs sensibles si fournis
     delete thingData._id;
@@ -74,17 +81,16 @@ exports.createThing = async (req, res) => {
 };
 
 
-/**********************
- * Modifier un livre
- **********************/
+/********************** * Modifier un livre **********************/
+
 exports.modifyThing = async (req, res) => {
   try {
     // Si un fichier image a été envoyé, on reconstruit l'objet avec la nouvelle image
     const thingObject = req.file
       ? {
-          ...JSON.parse(req.body.thing),
-          imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-        }
+        ...JSON.parse(req.body.thing),
+        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+      }
       : { ...req.body };
 
     // Supprimer les champs sensibles
@@ -93,12 +99,12 @@ exports.modifyThing = async (req, res) => {
     // Vérifier que le livre existe
     const thing = await Thing.findOne({ _id: req.params.id });
     if (!thing) {
-      return res.status(404).json({ message: 'Livre introuvable' });
+      return res.status(404).json({ message: "L'être est en effet, mais le néant n'est pas: livre introuvable" });
     }
 
     // Vérifier que l'utilisateur connecté est bien le créateur
     if (thing.userId.toString() !== req.auth.userId) {
-      return res.status(401).json({ message: 'Non autorisé' });
+      return res.status(401).json({ message: 'Es-tu le gardien de la Porte ? ' });
     }
 
     // Mise à jour du livre
@@ -112,9 +118,8 @@ exports.modifyThing = async (req, res) => {
 };
 
 
-/**********************
- * Supprimer un livre
- **********************/
+/********************** * Supprimer un livre **********************/
+
 exports.deleteThing = async (req, res) => {
   try {
     // On récupère le livre dans la base
