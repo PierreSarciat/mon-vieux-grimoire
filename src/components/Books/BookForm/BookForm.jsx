@@ -45,21 +45,21 @@ function BookForm({ book, validate }) {
 
   const onSubmit = async (data) => {
     try {
-      // Vérifier qu'une image a été ajoutée
-      if (!book && (!data.file || data.file.length === 0)) {
+      // 🔥 correction ici
+      const fileInput =
+        data.file && data.file.length > 0 ? data.file[0] : null;
+
+      if (!book && !fileInput) {
         alert('Vous devez ajouter une image');
         return;
       }
 
-      // Créer un FormData pour l'envoi multipart/form-data
       const formData = new FormData();
 
-      // Ajouter l'image sous le champ "image" (attendu par Multer)
-      if (data.file && data.file[0]) {
-        formData.append('image', data.file[0]);
+      if (fileInput) {
+        formData.append('image', fileInput);
       }
 
-      // Ajouter les autres données du livre sous forme JSON
       const bookData = {
         title: data.title,
         author: data.author,
@@ -67,9 +67,9 @@ function BookForm({ book, validate }) {
         genre: data.genre,
         rating: data.rating || 0,
       };
+
       formData.append('thing', JSON.stringify(bookData));
 
-      // Envoyer les données au backend via addBook
       const newBook = await addBook(formData);
 
       if (!newBook.error) {
@@ -125,7 +125,7 @@ function BookForm({ book, validate }) {
           )}
 
         </div>
-        <input {...register('file')} type="file" id="file" />
+        <input {...register('file')} type="file" id="file" accept="image/*" />
       </label>
       <button type="submit">Publier</button>
     </form>

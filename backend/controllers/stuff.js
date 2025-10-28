@@ -108,7 +108,14 @@ exports.modifyThing = async (req, res) => {
     }
 
     // Mise à jour du livre
-    await Thing.updateOne({ _id: req.params.id }, { ...thingObject, _id: req.params.id });
+
+    // Met à jour uniquement les champs modifiables, sans inclure _id
+
+    await Thing.updateOne(
+      { _id: req.params.id }, // filtre pour trouver le document
+      thingObject             // contient uniquement les champs à modifier
+    );
+
 
     res.status(200).json({ message: 'Livre modifié avec succès !' });
   } catch (error) {
@@ -126,41 +133,35 @@ exports.deleteThing = async (req, res) => {
     const thing = await Thing.findOne({ _id: req.params.id });
 
     if (!thing) {
-      return res.status(404).json({ message: 'Livre introuvable' });
+      return res.status(404).json({
+        message: "L'être est, et le Non-Être n'est pas: livre introuvable"
+      });
     }
 
     // Vérifier que l'utilisateur est bien le créateur
     if (thing.userId.toString() !== req.auth.userId) {
-      return res.status(401).json({ message: 'Non autorisé' });
+      return res.status(401).json({ message: 'Es-tu le gardien de la Porte ?' });
     }
 
-    // Supprimer l'image associée s'il y en a une
-    if (thing.imageUrl) {
-      const filename = thing.imageUrl.split('/images/')[1];
-      const imagePath = path.join(imagesPath, filename);
+    // Récupérer le nom du fichier depuis l'URL
+    const filename = thing.imageUrl.split('/images/')[1];
+    const imagePath = path.join(imagesPath, filename);
 
+    // Supprimer le fichier image
+    await fs.promises.unlink(imagePath).catch(err => {
+      console.error('Erreur lors de la suppression de l’image :', err);
+    });
 
-      // On supprime le fichier en asynchrone
-      fs.unlink(imagePath, async (err) => {
-        if (err) {
-          console.error('Erreur lors de la suppression de l’image :', err);
-        }
+    // Supprimer le livre de la base
+    await Thing.deleteOne({ _id: req.params.id });
 
-        // Puis on supprime le livre de la base
-        await Thing.deleteOne({ _id: req.params.id });
-        res.status(200).json({ message: 'Livre supprimé avec succès !' });
-      });
-    } else {
-      // Si pas d'image, on supprime juste le livre
-      await Thing.deleteOne({ _id: req.params.id });
-      res.status(200).json({ message: 'Livre supprimé avec succès (sans image) !' });
-    }
+    res.status(200).json({ message: 'Livre supprimé avec succès !' });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
   }
 };
-
 
 
 /**********************
