@@ -1,5 +1,4 @@
 /*********** Import des modules nécessaires ***********/
-require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -39,8 +38,7 @@ app.use('/api/books', stuffRoutes);
 app.use('/api/auth', userRoutes);
 
 /*********** Démarrage du serveur ***********/
-const PORT = process.env.SERVER_PORT || 4000;
 
-app.listen(PORT, () => {
-  console.log(`Serveur lancé sur le port ${PORT}`);
+app.listen(process.env.SERVER_PORT, () => {
+  console.log(`Serveur lancé sur le port ${process.env.SERVER_PORT}`);
 });
