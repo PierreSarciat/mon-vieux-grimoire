@@ -9,7 +9,7 @@ const MIME_TYPES = {
 };
 
 // Définir le chemin vers le dossier images dans src
-const imagesDir = path.join(__dirname, '../../src/images');
+const imagesDir = path.join(__dirname, '../images');
 
 
 const storage = multer.diskStorage({
