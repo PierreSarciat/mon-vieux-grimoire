@@ -8,12 +8,15 @@ const mongoose = require('mongoose');
 const stuffRoutes = require('./routes/stuff'); // backend/routes/stuff.js
 const userRoutes = require('./routes/user');   // backend/routes/user.js
 
-/*********** Connexion à MongoDB ***********/
-mongoose.connect(process.env.MONGODB_URL)
-  .then(() => console.log('✅ Connexion MongoDB réussie !'))
-  .catch(err => console.error('Erreur de connexion MongoDB :', err));
+/******************création de l 'application express*********** */
 
 const app = express();
+
+/*********** Connexion à MongoDB ***********/
+mongoose.connect(process.env.MONGODB_URL)
+  .then(() => console.log('Connexion MongoDB réussie !'))
+  .catch(err => console.error('Erreur de connexion MongoDB :', err));
+
 
 /*********** Configuration CORS ***********/
 app.use(cors({
@@ -27,7 +30,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /*********** Servir le dossier images en statique ***********/
-// Comme images est dans src/images par rapport à la racine du projet
+
 app.use('/images', express.static(path.join(__dirname, '../src/images')));
 
 /*********** Définition des routes ***********/
