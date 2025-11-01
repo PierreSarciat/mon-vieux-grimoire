@@ -2,7 +2,7 @@ const Thing = require('../models/thing');
 const path = require('path');
 const fs = require('fs');
 // Définir le chemin absolu vers le dossier images
-/*const imagesPath = path.join(__dirname, '..', '..', 'src', 'images');*/
+const imagesPath = path.join(__dirname, '../images');
 
 /********************** * Récupérer tous les livres **********************/
 
