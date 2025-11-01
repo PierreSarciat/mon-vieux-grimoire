@@ -12,18 +12,25 @@ const userRoutes = require('./routes/user');   // backend/routes/user.js
 
 const app = express();
 
+/*************configuration CORS************************* */
+
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+};
+
+
+
 /*********** Connexion à MongoDB ***********/
 mongoose.connect(process.env.MONGODB_URL)
   .then(() => console.log('Connexion MongoDB réussie !'))
   .catch(err => console.error('Erreur de connexion MongoDB :', err));
 
 
-/*********** Configuration CORS ***********/
-app.use(cors({
-  origin: 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
-}));
+/***********  CORS ***********/
+
+app.use(cors(corsOptions));
 
 /*********** Middleware JSON ***********/
 app.use(express.json());
@@ -33,7 +40,15 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/images', express.static(path.join(__dirname, '../src/images')));
 
+/***********************debug************************* */
+
+app.use((req, res, next) => {
+  console.log(`Requête reçue : ${req.method} ${req.url}`);
+  next();
+});
+
 /*********** Définition des routes ***********/
+
 // Routes pour les livres (stuff)
 app.use('/api/books', stuffRoutes);
 

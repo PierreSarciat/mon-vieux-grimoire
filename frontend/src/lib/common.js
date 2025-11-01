@@ -113,35 +113,21 @@ export async function rateBook(id, userId, rating) {
   }
 }
 
-export async function addBook(data) {
-  const userId = localStorage.getItem('userId');
-  const book = {
-    userId,
-    title: data.title,
-    author: data.author,
-    year: data.year,
-    genre: data.genre,
-    ratings: [{
-      userId,
-      grade: data.rating ? parseInt(data.rating, 10) : 0,
-    }],
-    averageRating: parseInt(data.rating, 10),
-  };
-  const bodyFormData = new FormData();
-  bodyFormData.append('book', JSON.stringify(book));
-  bodyFormData.append('image', data.file[0]);
-
+export async function addBook(formData) {
   try {
-    return await axios({
-      method: 'post',
-      url: `${API_ROUTES.BOOKS}`,
-      data: bodyFormData,
+    const response = await axios.post(`${API_ROUTES.BOOKS}`, formData, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
+        // Ne PAS fixer Content-Type, Axios gère ça
       },
     });
+    return response.data;
   } catch (err) {
-    console.error(err);
+    if (err.response && err.response.data?.message) {
+      console.error('Erreur serveur:', err.response.data.message);
+    } else {
+      console.error('Erreur inconnue:', err);
+    }
     return { error: true, message: err.message };
   }
 }

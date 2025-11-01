@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { getAuthenticatedUser, getBestRatedBooks } from './common';
 
-// eslint-disable-next-line import/prefer-default-export
+/* -------------------------------------------
+   Hook pour récupérer l’utilisateur connecté
+-------------------------------------------- */
 export function useUser() {
   const [connectedUser, setConnectedUser] = useState(null);
   const [auth, setAuth] = useState(false);
@@ -9,10 +11,17 @@ export function useUser() {
 
   useEffect(() => {
     async function getUserDetails() {
-      const { authenticated, user } = await getAuthenticatedUser();
-      setConnectedUser(user);
-      setAuth(authenticated);
-      setUserLoading(false);
+      try {
+        const { authenticated, user } = await getAuthenticatedUser();
+        setConnectedUser(user);
+        setAuth(authenticated);
+      } catch (err) {
+        console.error('Erreur lors de la récupération de l’utilisateur :', err);
+        setConnectedUser(null);
+        setAuth(false);
+      } finally {
+        setUserLoading(false);
+      }
     }
     getUserDetails();
   }, []);
@@ -20,13 +29,21 @@ export function useUser() {
   return { connectedUser, auth, userLoading };
 }
 
+/* -------------------------------------------
+   Hook pour récupérer les livres les mieux notés
+-------------------------------------------- */
 export function useBestRatedBooks() {
-  const [bestRatedBooks, setBestRatedBooks] = useState({});
+  const [bestRatedBooks, setBestRatedBooks] = useState([]);
 
   useEffect(() => {
     async function getRatedBooks() {
-      const books = await getBestRatedBooks();
-      setBestRatedBooks(books);
+      try {
+        const books = await getBestRatedBooks();
+        setBestRatedBooks(books);
+      } catch (err) {
+        console.error('Erreur lors de la récupération des livres :', err);
+        setBestRatedBooks([]);
+      }
     }
     getRatedBooks();
   }, []);
@@ -34,19 +51,35 @@ export function useBestRatedBooks() {
   return { bestRatedBooks };
 }
 
+/* -------------------------------------------
+   Hook pour prévisualiser un fichier image
+-------------------------------------------- */
 export function useFilePreview(file) {
-  const fileInput = file[0] ?? [];
   const [imgSrc, setImgSrc] = useState(null);
 
   useEffect(() => {
-    if (file && file[0]?.length > 0) {
-      const newUrl = URL.createObjectURL(file[0][0]);
-
-      if (newUrl !== imgSrc) {
-        setImgSrc(newUrl);
-      }
+    if (!file) {
+      setImgSrc(null);
+      return;
     }
-  }, [fileInput[0]?.name]);
+
+    // Si file est un FileList (input type="file") ou un File direct
+    const fileInput = file instanceof FileList ? file[0] : file;
+
+    if (!fileInput) {
+      setImgSrc(null);
+      return;
+    }
+
+    // Crée un URL temporaire pour prévisualiser l’image
+    const newUrl = URL.createObjectURL(fileInput);
+    setImgSrc(newUrl);
+
+    // Nettoyage à la désactivation du hook pour éviter les fuites mémoire
+    return () => {
+      URL.revokeObjectURL(newUrl);
+    };
+  }, [file]);
 
   return [imgSrc, setImgSrc];
 }
