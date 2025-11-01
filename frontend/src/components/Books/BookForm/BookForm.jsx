@@ -10,13 +10,19 @@ import styles from './BookForm.module.css';
 import { updateBook, addBook } from '../../../lib/common';
 
 function BookForm({ book, validate }) {
-  const userRating = book ? book.ratings.find((elt) => elt.userId === localStorage.getItem('userId'))?.grade : 0;
+  const userRating = book
+    ? book.ratings.find((elt) => elt.userId === localStorage.getItem('userId'))?.grade
+    : 0;
 
   const [rating, setRating] = useState(0);
-
   const navigate = useNavigate();
+
   const {
-    register, watch, formState, handleSubmit, reset,
+    register,
+    watch,
+    formState,
+    handleSubmit,
+    reset,
   } = useForm({
     defaultValues: useMemo(() => ({
       title: book?.title,
@@ -25,11 +31,14 @@ function BookForm({ book, validate }) {
       genre: book?.genre,
     }), [book]),
   });
+
   useEffect(() => {
     reset(book);
-  }, [book]);
-  const file = watch(['file']);
-  const [filePreview] = useFilePreview(file);
+  }, [book, reset]);
+
+  // On récupère directement le FileList du champ "file"
+  const watchedFile = watch('file'); // FileList ou undefined
+  const [filePreview] = useFilePreview(watchedFile?.[0]); // passe le premier fichier au hook
 
   useEffect(() => {
     setRating(userRating);
@@ -37,17 +46,16 @@ function BookForm({ book, validate }) {
 
   useEffect(() => {
     if (!book && formState.dirtyFields.rating) {
-      const rate = document.querySelector('input[name="rating"]:checked').value;
-      setRating(parseInt(rate, 10));
+      const rate = document.querySelector('input[name="rating"]:checked')?.value;
+      if (rate) setRating(parseInt(rate, 10));
       formState.dirtyFields.rating = false;
     }
-  }, [formState]);
+  }, [formState, book]);
 
   const onSubmit = async (data) => {
     try {
-      // 🔥 correction ici
-      const fileInput =
-        data.file && data.file.length > 0 ? data.file[0] : null;
+      // data.file peut être undefined, on sécurise
+    const fileInput = data.file && data.file.length > 0 ? data.file[0] : null;
 
       if (!book && !fileInput) {
         alert('Vous devez ajouter une image');
@@ -57,7 +65,7 @@ function BookForm({ book, validate }) {
       const formData = new FormData();
 
       if (fileInput) {
-        formData.append('image', fileInput);
+        formData.append('image', fileInput); // Multer attend "image"
       }
 
       const bookData = {
@@ -68,12 +76,12 @@ function BookForm({ book, validate }) {
         rating: data.rating || 0,
       };
 
-      formData.append('thing', JSON.stringify(bookData));
+      formData.append('thing', JSON.stringify(bookData)); // Multer reçoit "thing"
 
       const newBook = await addBook(formData);
 
       if (!newBook.error) {
-        validate(true);
+        validate && validate(true);
       } else {
         alert(newBook.message);
       }
@@ -84,31 +92,38 @@ function BookForm({ book, validate }) {
   };
 
   const readOnlyStars = !!book;
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={styles.Form}>
       <input type="hidden" id="id" {...register('id')} />
+
       <label htmlFor="title">
         <p>Titre du livre</p>
         <input type="text" id="title" {...register('title')} />
       </label>
+
       <label htmlFor="author">
         <p>Auteur</p>
         <input type="text" id="author" {...register('author')} />
       </label>
+
       <label htmlFor="year">
         <p>Année de publication</p>
         <input type="text" id="year" {...register('year')} />
       </label>
+
       <label htmlFor="genre">
         <p>Genre</p>
         <input type="text" id="genre" {...register('genre')} />
       </label>
+
       <label htmlFor="rate">
         <p>Note</p>
         <div className={styles.Stars}>
           {generateStarsInputs(rating, register, readOnlyStars)}
         </div>
       </label>
+
       <label htmlFor="file">
         <p>Visuel</p>
         <div className={styles.AddImage}>
@@ -123,10 +138,10 @@ function BookForm({ book, validate }) {
               <p>Ajouter une image</p>
             </>
           )}
-
         </div>
         <input {...register('file')} type="file" id="file" accept="image/*" />
       </label>
+
       <button type="submit">Publier</button>
     </form>
   );
@@ -155,4 +170,5 @@ BookForm.defaultProps = {
   book: null,
   validate: null,
 };
+
 export default BookForm;
