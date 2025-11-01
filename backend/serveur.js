@@ -38,7 +38,7 @@ app.use(express.urlencoded({ extended: true }));
 
 /*********** Servir le dossier images en statique ***********/
 
-app.use('/images', express.static(path.join(__dirname, '../src/images')));
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 /***********************debug************************* */
 
