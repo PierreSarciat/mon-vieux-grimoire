@@ -1,5 +1,4 @@
 /* eslint-disable react/jsx-props-no-spreading */
-
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useUser } from '../../lib/customHooks';
@@ -14,43 +13,45 @@ import BackArrow from '../../components/BackArrow/BackArrow';
 function Book() {
   const { connectedUser, userLoading } = useUser();
   const [book, setBook] = useState(null);
-  const [rating, setRating] = useState(0);
+  const [grade, setGrade] = useState(0);
   const [userRated, setUserRated] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const params = useParams();
 
   useEffect(() => {
-    async function getItem() {
+    async function fetchBook() {
       const data = await getBook(params.id);
       if (data) {
         setBook(data);
       }
     }
-    getItem();
+    fetchBook();
   }, [params.id]);
 
+  // Synchroniser grade et userRated après chargement du book et connectedUser
   useEffect(() => {
-    if (!userLoading && connectedUser && book?.title) {
-      const rate = book.ratings.find((elt) => elt.userId === connectedUser.userId);
-      if (rate) {
-        setUserRated(true);
-        setRating(parseInt(rate.grade, 10));
-        setLoading(false);
-      } else {
-        setUserRated(false);
-        setRating(0);
-        setLoading(false);
-      }
-    } else if (!userLoading && !connectedUser && book) {
-      setLoading(false);
+  if (!userLoading && book) {
+    // Protéger book.ratings au cas où il serait undefined
+    const ratings = book.ratings || [];
+    console.log('book.ratings:', ratings);
+    const rate = connectedUser
+      ? ratings.find((r) => r.userId === connectedUser.userId)
+      : null;
+    console.log('Note trouvée de l’utilisateur connecté:', rate);
+    if (rate) {
+      setUserRated(true);
+      setGrade(Number(rate.grade));
+    } else {
+      setUserRated(false);
+      setGrade(0);
     }
-  }, [book, userLoading]);
+    setLoading(false);
+  }
+}, [book, connectedUser, userLoading]);
 
   const onDelete = async (e) => {
-    if (e.key && e.key !== 'Enter') {
-      return;
-    }
+    if (e.key && e.key !== 'Enter') return;
     // eslint-disable-next-line no-restricted-globals
     const check = confirm('Etes vous sûr de vouloir supprimer ce livre ?');
     if (check) {
@@ -61,60 +62,57 @@ function Book() {
     }
   };
 
-  const loadingContent = (<h1>Chargement ...</h1>);
+  if (loading) return <h1>Chargement ...</h1>;
 
-  const bookContent = !loading && !book.delete ? (
-    <div>
-      <div className={styles.Book}>
-        <div className={styles.BookImage} style={{ backgroundImage: `url("${book.imageUrl}")` }} />
-        <div className={styles.BookContent}>
-          {book?.userId === connectedUser?.userId ? (
-            <div className={styles.Owner}>
-              <p>Vous avez publié cet ouvrage, vous pouvez le :</p>
-              <p>
-                <Link to={`/livre/modifier/${book.id}`}>modifier</Link>
-                {' '}
-                <span tabIndex={0} role="button" onKeyUp={onDelete} onClick={onDelete}>supprimer</span>
-                {' '}
-              </p>
-            </div>
-          ) : null}
-          <BookInfo book={book} />
-          <BookRatingForm
-            userRated={userRated}
-            userId={connectedUser?.userId}
-            rating={rating}
-            setRating={setRating}
-            setBook={setBook}
-            id={book.id}
-          />
-        </div>
+  if (book?.delete) {
+    return (
+      <div className={styles.Deleted}>
+        <h1>{book.title}</h1>
+        <p>a bien été supprimé</p>
+        <img src={BookDeleteImage} alt={`Le livre ${book.title} a bien été supprimé`} />
+        <Link to="/">
+          <button type="button">Retour à l'accueil</button>
+        </Link>
       </div>
-      <hr />
-      <BestRatedBooks />
-    </div>
-  ) : null;
-  const deletedContent = book?.delete ? (
-    <div className={styles.Deleted}>
-      <h1>{book.title}</h1>
-      <p>a bien été supprimé</p>
-      <img src={BookDeleteImage} alt={`Le livre ${book.title} a bien été supprimé`} />
-      <Link to="/">
-        <button type="button">{'Retour à l\'accueil'}</button>
-      </Link>
-    </div>
-  ) : null;
+    );
+  }
 
   return (
     <div className="content-container">
       <BackArrow />
-      {loading ? loadingContent : null}
       <div className={styles.BookContainer}>
-        {bookContent}
-      </div>
-      {book?.delete ? deletedContent : null}
+        <div className={styles.Book}>
+          <div className={styles.BookImage} style={{ backgroundImage: `url("${book.imageUrl}")` }} />
+          <div className={styles.BookContent}>
+            {book.userId === connectedUser?.userId && (
+              <div className={styles.Owner}>
+                <p>Vous avez publié cet ouvrage, vous pouvez le :</p>
+                <p>
+                  <Link to={`/livre/modifier/${book.id}`}>modifier</Link>{' '}
+                  <span tabIndex={0} role="button" onKeyUp={onDelete} onClick={onDelete}>
+                    supprimer
+                  </span>
+                </p>
+              </div>
+            )}
 
+            <BookInfo book={book} />
+
+            <BookRatingForm
+              userRated={userRated}
+              userId={connectedUser?.userId || ''}
+              grade={grade}
+              setRating={setGrade}
+              setBook={setBook}
+               id={book?._id || book?.id || ''}
+            />
+          </div>
+        </div>
+        <hr />
+        <BestRatedBooks />
+      </div>
     </div>
   );
 }
+
 export default Book;
