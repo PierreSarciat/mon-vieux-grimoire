@@ -8,52 +8,52 @@ import { APP_ROUTES } from '../../../utils/constants';
 import { useUser } from '../../../lib/customHooks';
 import { rateBook } from '../../../lib/common';
 
-function BookRatingForm({
-  rating, setRating, userId, setBook, id, userRated,
-}) {
+function BookRatingForm({ grade, setRating, userId, setBook, id, userRated }) {
   const { connectedUser, auth } = useUser();
   const navigate = useNavigate();
-  const { register, formState, handleSubmit } = useForm({
+
+  const { register, handleSubmit, watch } = useForm({
     mode: 'onChange',
-    defaultValues: {
-      rating: 0,
-    },
+    defaultValues: { grade },
   });
+
+  const watchedGrade = watch('grade', grade);
+
   useEffect(() => {
-    if (formState.dirtyFields.rating) {
-      const rate = document.querySelector('input[name="rating"]:checked').value;
-      setRating(parseInt(rate, 10));
-      formState.dirtyFields.rating = false;
-    }
-  }, [formState]);
+    setRating(Number(watchedGrade));
+  }, [watchedGrade, setRating]);
+
   const onSubmit = async () => {
     if (!connectedUser || !auth) {
       navigate(APP_ROUTES.SIGN_IN);
+      return;
     }
-    const update = await rateBook(id, userId, rating);
-    console.log(update);
+
+    const update = await rateBook(id, userId, watchedGrade);
     if (update) {
-      // eslint-disable-next-line no-underscore-dangle
       setBook({ ...update, id: update._id });
     } else {
-      alert(update);
+      alert('Erreur lors de l’enregistrement de la note.');
     }
   };
+
   return (
     <div className={styles.BookRatingForm}>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <p>{rating > 0 ? 'Votre Note' : 'Notez cet ouvrage'}</p>
+        <p>{watchedGrade > 0 ? 'Votre Note' : 'Notez cet ouvrage'}</p>
         <div className={styles.Stars}>
-          {!userRated ? generateStarsInputs(rating, register) : displayStars(rating)}
+          {!userRated
+            ? generateStarsInputs(watchedGrade, register)
+            : displayStars(watchedGrade)}
         </div>
-        {!userRated ? <button type="submit">Valider</button> : null}
+        {!userRated && <button type="submit">Valider</button>}
       </form>
     </div>
   );
 }
 
 BookRatingForm.propTypes = {
-  rating: PropTypes.number.isRequired,
+  grade: PropTypes.number.isRequired,
   setRating: PropTypes.func.isRequired,
   userId: PropTypes.string.isRequired,
   setBook: PropTypes.func.isRequired,
