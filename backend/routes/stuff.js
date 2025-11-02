@@ -13,6 +13,6 @@ router.put('/:id', auth, multer, stuffCtrl.modifyThing);
 router.delete('/:id', auth, stuffCtrl.deleteThing);
 
 // Route pour ajouter une note à un livre
-router.post('/:id/rating', auth, stuffCtrl.addRating);
+router.post('/:id/grade', auth, stuffCtrl.addRating);
 
 module.exports = router;
