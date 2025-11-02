@@ -91,14 +91,19 @@ export async function deleteBook(id) {
   }
 }
 
-export async function rateBook(id, userId, rating) {
+export async function rateBook(id, userId, grade) {
+  console.log('rateBook appelé avec id:', id, 'userId:', userId, 'rating:', grade);
+  if (!id) {
+    console.error('Erreur : id du livre non défini, impossible de noter');
+    return 'Erreur : id du livre non défini';
+  }
   const data = {
     userId,
-    rating: parseInt(rating, 10),
+    grade: parseInt(grade, 10),
   };
 
   try {
-    const response = await axios.post(`${API_ROUTES.BOOKS}/${id}/rating`, data, {
+    const response = await axios.post(`${API_ROUTES.BOOKS}/${id}/grade`, data, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
