@@ -1,7 +1,6 @@
 const Thing = require('../models/thing');
 const path = require('path');
 const fs = require('fs');
-// Définir le chemin absolu vers le dossier images
 const imagesPath = path.join(__dirname, '../images');
 
 /********************** * Récupérer tous les livres **********************/
@@ -87,18 +86,15 @@ exports.modifyThing = async (req, res) => {
   try {
     const thingObject = req.file
       ? {
-          ...JSON.parse(req.body.book),
-          imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
-        }
+        ...JSON.parse(req.body.book),
+        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+      }
       : JSON.parse(req.body.book);
 
-    console.log('Données reçues pour mise à jour :', thingObject);
-
     delete thingObject._userId;
-    delete thingObject._id;  // prudence supplémentaire
+    delete thingObject._id;
 
     const thing = await Thing.findOne({ _id: req.params.id });
-    console.log('Document avant mise à jour :', thing);
 
     if (!thing) {
       return res.status(404).json({ message: "Livre introuvable" });
@@ -114,8 +110,6 @@ exports.modifyThing = async (req, res) => {
       { new: true }
     );
 
-    console.log('Document après mise à jour :', updatedThing);
-
     res.status(200).json({ message: 'Livre modifié avec succès !', updatedThing });
   } catch (error) {
     console.error('Erreur lors de la modification :', error);
@@ -127,40 +121,35 @@ exports.modifyThing = async (req, res) => {
 
 exports.deleteThing = async (req, res) => {
   try {
-    // On récupère le livre dans la base
+
     const thing = await Thing.findOne({ _id: req.params.id });
 
-    if (!thing) {
-      return res.status(404).json({
-        message: "L'être est, et le Non-Être n'est pas: livre introuvable"
-      });
-    }
-
-    // Vérifier que l'utilisateur est bien le créateur
     if (thing.userId.toString() !== req.auth.userId) {
-      return res.status(401).json({ message: 'Es-tu le gardien de la Porte ?' });
+      return res.status(401).json({ message: 'Utilisateur non autorisé à supprimer ce livre' });
     }
 
-    // Récupérer le nom du fichier depuis l'URL
     const filename = thing.imageUrl.split('/images/')[1];
+
     const imagePath = path.join(imagesPath, filename);
 
-    // Supprimer le fichier image
-    await fs.promises.unlink(imagePath).catch(err => {
-      console.error('Erreur lors de la suppression de l’image :', err);
-    });
+    const fileExists = await fs.promises.access(imagePath).then(() => true).catch(() => false);
 
-    // Supprimer le livre de la base
-    await Thing.deleteOne({ _id: req.params.id });
+    try {
+      await fs.promises.unlink(imagePath);
+      console.log('Image supprimée avec succès');
+    } catch (err) {
+      console.error('Erreur lors de la suppression de l’image :', err);
+
+    }
+
+    const result = await Thing.deleteOne({ _id: req.params.id });
 
     res.status(200).json({ message: 'Livre supprimé avec succès !' });
 
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: error.message });
   }
 };
-
 
 /**********************
  * Ajouter une note à un livre
