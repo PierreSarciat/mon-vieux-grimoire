@@ -156,25 +156,44 @@ exports.deleteThing = async (req, res) => {
  **********************/
 exports.addRating = async (req, res) => {
   try {
+    console.log('Début addRating');
+    console.log('ID du livre:', req.params.id);
+    console.log('Corps de la requête:', req.body);
+    console.log('Utilisateur authentifié:', req.auth.userId);
+
     const book = await Thing.findById(req.params.id);
-    if (!book) return res.status(404).json({ message: 'Livre introuvable' });
+    console.log('Livre trouvé:', book);
+
+    if (!book) {
+      console.log('Livre introuvable');
+      return res.status(404).json({ message: 'Livre introuvable' });
+    }
 
     const { grade } = req.body;
-    if (typeof grade !== 'number' || grade < 0 || grade > 5) {
-      return res.status(400).json({ message: 'La note doit être un nombre entre 0 et 5' });
+    console.log('Note reçue :', grade);
+
+    
+    // Vérifier si l'utilisateur a déjà noté ce livre (pour empêcher doublons)
+    const alreadyRated = book.ratings.find(grade => grade.userId.toString() === req.auth.userId);
+    console.log('L\'utilisateur a-t-il déjà noté ce livre ?', alreadyRated ? 'Oui' : 'Non');
+    if (alreadyRated) {
+      return res.status(400).json({ message: 'Vous avez déjà noté ce livre' });
     }
 
     // Ajouter la note avec l'ID de l'utilisateur
-    book.ratings.push({ userId: req.auth.userId, grade });
+    book.ratings.push({ userId: req.auth.userId, grade});
+    console.log('Notes après ajout:', book.ratings);
 
     // Recalculer la moyenne
-    book.averageRating =
-      book.ratings.reduce((acc, cur) => acc + cur.grade, 0) / book.ratings.length;
+    book.averageRating = book.ratings.reduce((acc, cur) => acc + cur.grade, 0) / book.ratings.length;
+    console.log('Nouvelle note moyenne:', book.averageRating);
 
     await book.save();
+    console.log('Livre sauvegardé avec la nouvelle note');
 
     res.status(200).json({ message: 'Note ajoutée avec succès !', book });
   } catch (err) {
+    console.error('Erreur dans addRating :', err);
     res.status(400).json({ error: err.message });
   }
 };
