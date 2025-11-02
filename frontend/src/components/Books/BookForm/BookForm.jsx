@@ -53,43 +53,47 @@ function BookForm({ book, validate }) {
   }, [formState, book]);
 
   const onSubmit = async (data) => {
-    try {
-      // data.file peut être undefined, on sécurise
+  try {
     const fileInput = data.file && data.file.length > 0 ? data.file[0] : null;
 
-      if (!book && !fileInput) {
-        alert('Vous devez ajouter une image');
-        return;
-      }
-
-      const formData = new FormData();
-
-      if (fileInput) {
-        formData.append('image', fileInput); // Multer attend "image"
-      }
-
-      const bookData = {
-        title: data.title,
-        author: data.author,
-        year: data.year,
-        genre: data.genre,
-        rating: data.rating || 0,
-      };
-
-      formData.append('thing', JSON.stringify(bookData)); // Multer reçoit "thing"
-
-      const newBook = await addBook(formData);
-
-      if (!newBook.error) {
-        validate && validate(true);
-      } else {
-        alert(newBook.message);
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Erreur lors de la création du livre.');
+    if (!book && !fileInput) {
+      alert('Vous devez ajouter une image');
+      return;
     }
-  };
+
+    const formData = new FormData();
+    const bookData = {
+      title: data.title,
+      author: data.author,
+      year: data.year,
+      genre: data.genre,
+      rating: data.rating || 0,
+    };
+    formData.append('thing', JSON.stringify(bookData));
+
+    if (fileInput) {
+      formData.append('image', fileInput);
+    }
+    
+    let response;
+    if (book) {
+      // Modification
+      response = await updateBook(formData, book._id || book.id);
+    } else {
+      // Création
+      response = await addBook(formData);
+    }
+
+    if (!response.error) {
+      validate && validate(true);
+    } else {
+      alert(response.message);
+    }
+  } catch (err) {
+    console.error(err);
+    alert(book ? 'Erreur lors de la modification du livre.' : 'Erreur lors de la création du livre.');
+  }
+};
 
   const readOnlyStars = !!book;
 

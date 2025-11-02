@@ -85,45 +85,43 @@ exports.createThing = async (req, res) => {
 
 exports.modifyThing = async (req, res) => {
   try {
-    // Si un fichier image a été envoyé, on reconstruit l'objet avec la nouvelle image
     const thingObject = req.file
       ? {
-        ...JSON.parse(req.body.thing),
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-      }
-      : { ...req.body };
+          ...JSON.parse(req.body.book),
+          imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+        }
+      : JSON.parse(req.body.book);
 
-    // Supprimer les champs sensibles
+    console.log('Données reçues pour mise à jour :', thingObject);
+
     delete thingObject._userId;
+    delete thingObject._id;  // prudence supplémentaire
 
-    // Vérifier que le livre existe
     const thing = await Thing.findOne({ _id: req.params.id });
+    console.log('Document avant mise à jour :', thing);
+
     if (!thing) {
-      return res.status(404).json({ message: "L'être est en effet, mais le néant n'est pas: livre introuvable" });
+      return res.status(404).json({ message: "Livre introuvable" });
     }
 
-    // Vérifier que l'utilisateur connecté est bien le créateur
     if (thing.userId.toString() !== req.auth.userId) {
-      return res.status(401).json({ message: 'Es-tu le gardien de la Porte ? ' });
+      return res.status(401).json({ message: 'Permission refusée' });
     }
 
-    // Mise à jour du livre
-
-    // Met à jour uniquement les champs modifiables, sans inclure _id
-
-    await Thing.updateOne(
-      { _id: req.params.id }, // filtre pour trouver le document
-      thingObject             // contient uniquement les champs à modifier
+    const updatedThing = await Thing.findByIdAndUpdate(
+      req.params.id,
+      { $set: thingObject },
+      { new: true }
     );
 
+    console.log('Document après mise à jour :', updatedThing);
 
-    res.status(200).json({ message: 'Livre modifié avec succès !' });
+    res.status(200).json({ message: 'Livre modifié avec succès !', updatedThing });
   } catch (error) {
-    console.error(error);
+    console.error('Erreur lors de la modification :', error);
     res.status(400).json({ error });
   }
 };
-
 
 /********************** * Supprimer un livre **********************/
 

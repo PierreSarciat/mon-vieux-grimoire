@@ -133,23 +133,31 @@ export async function addBook(formData) {
 }
 
 export async function updateBook(data, id) {
+  console.log('data reçu dans updateBook (FormData) :', data);
+
+  // Extraire la chaîne JSON depuis la clé 'thing' de FormData
+  const bookDataJSON = data.get('thing');
+
+  // Parser en objet JavaScript
+  const parsedData = bookDataJSON ? JSON.parse(bookDataJSON) : {};
+
   const userId = localStorage.getItem('userId');
 
-  let newData;
   const book = {
     userId,
-    title: data.title,
-    author: data.author,
-    year: data.year,
-    genre: data.genre,
+    title: parsedData.title,
+    author: parsedData.author,
+    year: parsedData.year,
+    genre: parsedData.genre,
   };
-  console.log(data.file[0]);
-  if (data.file[0]) {
-    newData = new FormData();
-    newData.append('book', JSON.stringify(book));
-    newData.append('image', data.file[0]);
-  } else {
-    newData = { ...book };
+
+  console.log('Objet book construit :', book);
+
+  let newData = new FormData();
+  newData.append('book', JSON.stringify(book));
+
+  if (data.get('image')) {
+    newData.append('image', data.get('image'));
   }
 
   try {
@@ -159,6 +167,7 @@ export async function updateBook(data, id) {
       data: newData,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
+        // Ne pas définir Content-Type, axios s’en occupe automatiquement pour FormData
       },
     });
     return newBook;
