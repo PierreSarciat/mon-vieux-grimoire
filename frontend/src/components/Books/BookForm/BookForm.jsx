@@ -10,11 +10,11 @@ import styles from './BookForm.module.css';
 import { updateBook, addBook } from '../../../lib/common';
 
 function BookForm({ book, validate }) {
-  const userRating = book
+  const userGrade = book
     ? book.ratings.find((elt) => elt.userId === localStorage.getItem('userId'))?.grade
     : 0;
 
-  const [rating, setRating] = useState(0);
+  const [grade, setGrade] = useState(0);
   const navigate = useNavigate();
 
   const {
@@ -29,71 +29,74 @@ function BookForm({ book, validate }) {
       author: book?.author,
       year: book?.year,
       genre: book?.genre,
-    }), [book]),
+      grade: userGrade || 0,
+    }), [book, userGrade]),
   });
 
   useEffect(() => {
     reset(book);
   }, [book, reset]);
 
-  // On récupère directement le FileList du champ "file"
+  // Surveillance du fichier image
   const watchedFile = watch('file'); // FileList ou undefined
-  const [filePreview] = useFilePreview(watchedFile?.[0]); // passe le premier fichier au hook
+  const [filePreview] = useFilePreview(watchedFile?.[0]); // premier fichier pour la preview
 
+  // Initialise la note du user si le livre existe
   useEffect(() => {
-    setRating(userRating);
-  }, [userRating]);
+    setGrade(userGrade);
+  }, [userGrade]);
 
+  // Met à jour la note quand l’utilisateur clique sur une étoile
   useEffect(() => {
-    if (!book && formState.dirtyFields.rating) {
-      const rate = document.querySelector('input[name="rating"]:checked')?.value;
-      if (rate) setRating(parseInt(rate, 10));
-      formState.dirtyFields.rating = false;
+    const selectedGrade = document.querySelector('input[name="grade"]:checked')?.value;
+    if (selectedGrade) {
+      setGrade(parseInt(selectedGrade, 10));
     }
-  }, [formState, book]);
+  }, [formState.dirtyFields.grade]);
 
   const onSubmit = async (data) => {
-  try {
-    const fileInput = data.file && data.file.length > 0 ? data.file[0] : null;
+    try {
+      const fileInput = data.file && data.file.length > 0 ? data.file[0] : null;
 
-    if (!book && !fileInput) {
-      alert('Vous devez ajouter une image');
-      return;
-    }
+      if (!book && !fileInput) {
+        alert('Vous devez ajouter une image');
+        return;
+      }
 
-    const formData = new FormData();
-    const bookData = {
-      title: data.title,
-      author: data.author,
-      year: data.year,
-      genre: data.genre,
-      rating: data.rating || 0,
-    };
-    formData.append('thing', JSON.stringify(bookData));
+      const formData = new FormData();
+      const bookData = {
+        title: data.title,
+        author: data.author,
+        year: data.year,
+        genre: data.genre,
+        grade: data.grade || grade || 0,
+      };
 
-    if (fileInput) {
-      formData.append('image', fileInput);
-    }
-    
-    let response;
-    if (book) {
-      // Modification
-      response = await updateBook(formData, book._id || book.id);
-    } else {
-      // Création
-      response = await addBook(formData);
-    }
+      formData.append('thing', JSON.stringify(bookData));
 
-    if (!response.error) {
-      validate && validate(true);
-    } else {
-      alert(response.message);
+      if (fileInput) {
+        formData.append('image', fileInput);
+      }
+
+      let response;
+      if (book) {
+        // Modification
+        response = await updateBook(formData, book._id || book.id);
+      } else {
+        // Création
+        response = await addBook(formData);
+      }
+
+      if (!response.error) {
+        validate && validate(true);
+      } else {
+        alert(response.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(book ? 'Erreur lors de la modification du livre.' : 'Erreur lors de la création du livre.');
     }
-  } catch (err) {
-    console.error(err);
-    alert(book ? 'Erreur lors de la modification du livre.' : 'Erreur lors de la création du livre.');
-  }
-};
+  };
 
   const readOnlyStars = !!book;
 
@@ -121,10 +124,10 @@ function BookForm({ book, validate }) {
         <input type="text" id="genre" {...register('genre')} />
       </label>
 
-      <label htmlFor="rate">
+      <label htmlFor="grade">
         <p>Note</p>
         <div className={styles.Stars}>
-          {generateStarsInputs(rating, register, readOnlyStars)}
+          {generateStarsInputs(grade, register, readOnlyStars)}
         </div>
       </label>
 
