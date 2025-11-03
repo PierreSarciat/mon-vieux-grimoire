@@ -65,8 +65,8 @@ exports.createThing = async (req, res) => {
       ...thingData,
       userId: req.auth.userId,
       imageUrl,
-      ratings: thingData.ratings || [],
-      averageRating: thingData.averageRating || 0
+     ratings: thingData.grade ? [{ userId: req.auth.userId, grade: Number(thingData.grade) }] : [],
+  averageRating: thingData.grade ? Number(thingData.grade) : 0,
     });
 
     await newThing.save();

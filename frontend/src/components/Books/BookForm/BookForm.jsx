@@ -64,13 +64,17 @@ function BookForm({ book, validate }) {
       }
 
       const formData = new FormData();
+
+     /* const finalGrade = data.grade || grade || 0;*/
+
       const bookData = {
         title: data.title,
         author: data.author,
         year: data.year,
         genre: data.genre,
-        grade: data.grade || grade || 0,
+        grade: /*finalGrade,*/data.grade || grade || 0
       };
+
 
       formData.append('thing', JSON.stringify(bookData));
 
