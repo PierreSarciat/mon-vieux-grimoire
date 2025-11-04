@@ -93,30 +93,38 @@ export async function deleteBook(id) {
 
 export async function rateBook(id, userId, grade) {
   console.log('rateBook appelé avec id:', id, 'userId:', userId, 'rating:', grade);
+
   if (!id) {
     console.error('Erreur : id du livre non défini, impossible de noter');
-    return 'Erreur : id du livre non défini';
+    return null;
   }
-  const data = {
-    userId,
-    grade: parseInt(grade, 10),
-  };
+
+  const data = { userId, grade: parseInt(grade, 10) };
 
   try {
-    const response = await axios.post(`${API_ROUTES.BOOKS}/${id}/grade`, data, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    });
-    const book = response.data;
-    // eslint-disable-next-line no-underscore-dangle
+    const response = await axios.post(
+      `${API_ROUTES.BOOKS}/${id}/grade`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      }
+    );
+
+    // ✅ Le backend renvoie { message, book }
+    const book = response.data.book;
+
+    // On s’assure que le champ `id` existe
     book.id = book._id;
+
     return book;
-  } catch (e) {
-    console.error(e);
-    return e.message;
+  } catch (error) {
+    console.error('Erreur lors de l’envoi de la note :', error);
+    return null;
   }
 }
+
 
 export async function addBook(formData) {
   try {
