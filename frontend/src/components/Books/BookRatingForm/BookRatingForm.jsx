@@ -23,19 +23,28 @@ function BookRatingForm({ grade, setRating, userId, setBook, id, userRated }) {
     setRating(Number(watchedGrade));
   }, [watchedGrade, setRating]);
 
-  const onSubmit = async () => {
-    if (!connectedUser || !auth) {
-      navigate(APP_ROUTES.SIGN_IN);
-      return;
-    }
+ const onSubmit = async () => {
+  if (!connectedUser || !auth) {
+    navigate(APP_ROUTES.SIGN_IN);
+    return;
+  }
 
-    const update = await rateBook(id, userId, watchedGrade);
-    if (update) {
-      setBook({ ...update, id: update._id });
-    } else {
-      alert('Erreur lors de l’enregistrement de la note.');
+  const update = await rateBook(id, userId, watchedGrade);
+  if (update) {
+    // On ne met pas tout le livre à jour, juste les parties qui changent
+    setRating(Number(watchedGrade));
+    setBook((prev) => ({
+      ...prev,
+      ratings: update.ratings, // juste les notes
+    }));
+    if (update.averageRating) {
+      setAverageRating(update.averageRating);
     }
-  };
+  } else {
+    alert('Erreur lors de l’enregistrement de la note.');
+  }
+};
+
 
   return (
     <div className={styles.BookRatingForm}>
@@ -59,6 +68,7 @@ BookRatingForm.propTypes = {
   setBook: PropTypes.func.isRequired,
   id: PropTypes.string.isRequired,
   userRated: PropTypes.bool.isRequired,
+  setAverageRating: PropTypes.func.isRequired,
 };
 
 export default BookRatingForm;
