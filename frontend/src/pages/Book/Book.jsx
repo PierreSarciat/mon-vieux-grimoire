@@ -16,43 +16,43 @@ function Book() {
   const [grade, setGrade] = useState(0);
   const [userRated, setUserRated] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  const [averageRating, setAverageRating] = useState(0); // ✅ État pour la moyenne des notes
   const params = useParams();
 
+  // Récupération du livre
   useEffect(() => {
     async function fetchBook() {
       const data = await getBook(params.id);
       if (data) {
         setBook(data);
+        setAverageRating(data.averageRating || 0); // initialise la moyenne
       }
     }
     fetchBook();
   }, [params.id]);
 
-  // Synchroniser grade et userRated après chargement du book et connectedUser
+  // Synchroniser grade et userRated après chargement du livre et de l'utilisateur
   useEffect(() => {
-  if (!userLoading && book) {
-    // Protéger book.ratings au cas où il serait undefined
-    const ratings = book.ratings || [];
-    console.log('book.ratings:', ratings);
-    const rate = connectedUser
-      ? ratings.find((r) => r.userId === connectedUser.userId)
-      : null;
-    console.log('Note trouvée de l’utilisateur connecté:', rate);
-    if (rate) {
-      setUserRated(true);
-      setGrade(Number(rate.grade));
-    } else {
-      setUserRated(false);
-      setGrade(0);
-    }
-    setLoading(false);
-  }
-}, [book, connectedUser, userLoading]);
+    if (!userLoading && book) {
+      const ratings = book.ratings || [];
+      const rate = connectedUser
+        ? ratings.find((r) => r.userId === connectedUser.userId)
+        : null;
 
+      if (rate) {
+        setUserRated(true);
+        setGrade(Number(rate.grade));
+      } else {
+        setUserRated(false);
+        setGrade(0);
+      }
+      setLoading(false);
+    }
+  }, [book, connectedUser, userLoading]);
+
+  // Supprimer le livre
   const onDelete = async (e) => {
     if (e.key && e.key !== 'Enter') return;
-    // eslint-disable-next-line no-restricted-globals
     const check = confirm('Etes vous sûr de vouloir supprimer ce livre ?');
     if (check) {
       const del = await deleteBook(book.id);
@@ -82,29 +82,40 @@ function Book() {
       <BackArrow />
       <div className={styles.BookContainer}>
         <div className={styles.Book}>
-          <div className={styles.BookImage} style={{ backgroundImage: `url("${book.imageUrl}")` }} />
+          <div
+            className={styles.BookImage}
+            style={{ backgroundImage: `url("${book.imageUrl}")` }}
+          />
           <div className={styles.BookContent}>
             {book.userId === connectedUser?.userId && (
               <div className={styles.Owner}>
                 <p>Vous avez publié cet ouvrage, vous pouvez le :</p>
                 <p>
                   <Link to={`/livre/modifier/${book.id}`}>modifier</Link>{' '}
-                  <span tabIndex={0} role="button" onKeyUp={onDelete} onClick={onDelete}>
+                  <span
+                    tabIndex={0}
+                    role="button"
+                    onKeyUp={onDelete}
+                    onClick={onDelete}
+                  >
                     supprimer
                   </span>
                 </p>
               </div>
             )}
 
-            <BookInfo book={book} />
+            {/* BookInfo reçoit la moyenne */}
+            <BookInfo book={{ ...book, averageRating }} />
 
+            {/* BookRatingForm reçoit setAverageRating pour mise à jour partielle */}
             <BookRatingForm
               userRated={userRated}
               userId={connectedUser?.userId || ''}
               grade={grade}
               setRating={setGrade}
               setBook={setBook}
-               id={book?._id || book?.id || ''}
+              setAverageRating={setAverageRating} // ✅ mise à jour de la moyenne
+              id={book?._id || book?.id || ''}
             />
           </div>
         </div>
