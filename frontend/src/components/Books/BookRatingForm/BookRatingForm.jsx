@@ -8,7 +8,7 @@ import { APP_ROUTES } from '../../../utils/constants';
 import { useUser } from '../../../lib/customHooks';
 import { rateBook } from '../../../lib/common';
 
-function BookRatingForm({ grade, setRating, userId, setBook, id, userRated }) {
+function BookRatingForm({ grade, setRating, userId, setBook, setAverageRating, id, userRated }) {
   const { connectedUser, auth } = useUser();
   const navigate = useNavigate();
 
