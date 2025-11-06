@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useUser } from '../../lib/customHooks';
@@ -16,7 +15,7 @@ function Book() {
   const [grade, setGrade] = useState(0);
   const [userRated, setUserRated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [averageRating, setAverageRating] = useState(0); // ✅ État pour la moyenne des notes
+  const [averageRating, setAverageRating] = useState(0); // État pour la moyenne des notes
   const params = useParams();
 
   // Récupération du livre
@@ -114,7 +113,7 @@ function Book() {
               grade={grade}
               setRating={setGrade}
               setBook={setBook}
-              setAverageRating={setAverageRating} // ✅ mise à jour de la moyenne
+              setAverageRating={setAverageRating} // mise à jour de la moyenne
               id={book?._id || book?.id || ''}
             />
           </div>
