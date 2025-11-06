@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const imagesPath = path.join(__dirname, '../images');
 
-/********************** * Récupérer tous les livres **********************/
+//            Récupérer tous les livres 
 
 
 exports.getAllThings = async (req, res) => {
@@ -15,7 +15,7 @@ exports.getAllThings = async (req, res) => {
   }
 };
 
-/********************** * Récupérer un livre par ID **********************/
+//             Récupérer un livre par ID 
 
 
 exports.getOneThing = async (req, res) => {
@@ -28,9 +28,9 @@ exports.getOneThing = async (req, res) => {
   }
 };
 
-/**********************
- * Créer un livre (avec image via multer)
- **********************/
+
+ //            Créer un livre (avec image via multer)
+ 
 
 exports.createThing = async (req, res) => {
   try {
@@ -80,7 +80,7 @@ exports.createThing = async (req, res) => {
 };
 
 
-/********************** * Modifier un livre **********************/
+//                Modifier un livre 
 
 exports.modifyThing = async (req, res) => {
   try {
@@ -117,7 +117,7 @@ exports.modifyThing = async (req, res) => {
   }
 };
 
-/********************** * Supprimer un livre **********************/
+//                 Supprimer un livre 
 
 exports.deleteThing = async (req, res) => {
   try {
@@ -151,9 +151,9 @@ exports.deleteThing = async (req, res) => {
   }
 };
 
-/**********************
- * Ajouter une note à un livre
- **********************/
+
+ //        Ajouter une note à un livre
+ 
 exports.addRating = async (req, res) => {
   try {
     console.log('Début addRating');
@@ -173,7 +173,7 @@ exports.addRating = async (req, res) => {
     console.log('Note reçue :', grade);
 
     
-    // Vérifier si l'utilisateur a déjà noté ce livre (pour empêcher doublons)
+    // Vérifier si l'utilisateur a déjà noté ce livre 
     const alreadyRated = book.ratings.find(grade => grade.userId.toString() === req.auth.userId);
     console.log('L\'utilisateur a-t-il déjà noté ce livre ?', alreadyRated ? 'Oui' : 'Non');
     if (alreadyRated) {
