@@ -8,6 +8,9 @@
     flex-direction: column;
     align-items: center;
     padding-block: 80px;
+       width: 90%;          /* plutôt qu’implicite */
+    max-width: 1200px;   /* limite maximale pour grand écran */
+    margin: 50px auto;
 }
 
 .Container p {
