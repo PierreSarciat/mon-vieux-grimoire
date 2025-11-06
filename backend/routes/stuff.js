@@ -2,17 +2,17 @@ const express = require('express');
 const router = express.Router();
 
 const auth = require('../middleware/auth');
-const multer = require('../middleware/multer-config');
+const { upload, compressImage } = require('../middleware/multer-config');
 const stuffCtrl = require('../controllers/stuff');
 
-// Routes CRUD sécurisées
+// Routes CRUD
 router.get('/', stuffCtrl.getAllThings);
-router.post('/', auth, multer, stuffCtrl.createThing);
+router.post('/', auth, upload.single('image'), compressImage, stuffCtrl.createThing);
 router.get('/:id', stuffCtrl.getOneThing);
-router.put('/:id', auth, multer, stuffCtrl.modifyThing);
+router.put('/:id', auth, upload.single('image'), compressImage, stuffCtrl.modifyThing);
 router.delete('/:id', auth, stuffCtrl.deleteThing);
 
-// Route pour ajouter une note à un livre
+// Ajouter une note
 router.post('/:id/grade', auth, stuffCtrl.addRating);
 
 module.exports = router;
