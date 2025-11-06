@@ -1,27 +1,40 @@
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+const sharp = require('sharp');
 
-
-const MIME_TYPES = {
-  'image/jpg': 'jpg',
-  'image/jpeg': 'jpg',
-  'image/png': 'png'
-};
-
-// Définir le chemin vers le dossier images dans src
+// Dossier de destination
 const imagesDir = path.join(__dirname, '../images');
 
+// Multer avec stockage en mémoire 
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-const storage = multer.diskStorage({
-  destination: (req, file, callback) => {
-    callback(null, imagesDir);
-  },
-  filename: (req, file, callback) => {
-    // extraire le nom sans l'extension
-    const name = path.parse(file.originalname).name.split(' ').join('_');
-    const extension = MIME_TYPES[file.mimetype];
-    callback(null, `${name}_${Date.now()}.${extension}`);
+// Middleware de compression Sharp
+const compressImage = async (req, res, next) => {
+  if (!req.file) return next();
+
+  try {
+    const name = path.parse(req.file.originalname).name.replace(/\s+/g, '_');
+    const filename = `${name}_${Date.now()}.webp`;
+    const filepath = path.join(imagesDir, filename);
+
+    // Compression & conversion
+    await sharp(req.file.buffer)
+      .webp({ quality: 60 }) 
+      .toFile(filepath);
+
+    // Mise à jour des infos de fichier 
+    req.file.filename = filename;
+    req.file.path = `images/${filename}`;
+    req.file.mimetype = 'image/webp';
+
+    next();
+  } catch (err) {
+    console.error('Erreur Sharp :', err);
+    res.status(500).json({ message: "Erreur lors du traitement de l'image." });
   }
-});
+};
 
-module.exports = multer({ storage }).single('image');
+// Export des deux middlewares à chaîner dans les routes
+module.exports = { upload, compressImage };
