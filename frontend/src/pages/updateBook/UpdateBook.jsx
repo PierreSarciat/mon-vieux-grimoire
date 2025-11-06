@@ -10,6 +10,7 @@ import bookAdd from '../../images/book_add.jpg';
 
 function UpdateBook() {
   const [book, setBook] = useState(null);
+   const [averageRating, setAverageRating] = useState(0);
   const params = useParams();
   const navigate = useNavigate();
   const { connectedUser, auth, userLoading } = useUser();
@@ -26,6 +27,7 @@ function UpdateBook() {
       const data = await getBook(params.id);
       if (data) {
         setBook(data);
+        setAverageRating(data.averageRating || 0);
       }
     }
     getItem();
