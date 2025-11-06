@@ -52,7 +52,7 @@ function Book() {
   // Supprimer le livre
   const onDelete = async (e) => {
     if (e.key && e.key !== 'Enter') return;
-    const check = confirm('Etes vous sûr de vouloir supprimer ce livre ?');
+    const check = window.confirm('Etes vous sûr de vouloir supprimer ce livre ?');
     if (check) {
       const del = await deleteBook(book.id);
       if (del) {
