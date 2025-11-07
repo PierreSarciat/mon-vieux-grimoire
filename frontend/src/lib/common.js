@@ -4,7 +4,7 @@ import { API_ROUTES } from '../utils/constants';
 function formatBooks(bookArray) {
   return bookArray.map((book) => {
     const newBook = { ...book };
-    // eslint-disable-next-line no-underscore-dangle
+    
     newBook.id = newBook._id;
     return newBook;
   });
@@ -40,7 +40,7 @@ export async function getBooks() {
       method: 'GET',
       url: `${API_ROUTES.BOOKS}`,
     });
-    // eslint-disable-next-line array-callback-return
+    
     const books = formatBooks(response.data);
     return books;
   } catch (err) {
@@ -56,7 +56,7 @@ export async function getBook(id) {
       url: `${API_ROUTES.BOOKS}/${id}`,
     });
     const book = response.data;
-    // eslint-disable-next-line no-underscore-dangle
+    
     book.id = book._id;
     return book;
   } catch (err) {
@@ -112,7 +112,7 @@ export async function rateBook(id, userId, grade) {
       }
     );
 
-    // ✅ Le backend renvoie { message, book }
+    // Le backend renvoie { message, book }
     const book = response.data.book;
 
     // On s’assure que le champ `id` existe
