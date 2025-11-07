@@ -5,6 +5,10 @@ const auth = require('../middleware/auth');
 const { upload, compressImage } = require('../middleware/multer-config');
 const stuffCtrl = require('../controllers/stuff');
 
+// route pour les livres les mieux notés
+router.get('/bestrating', stuffCtrl.getBestRatedBooks);
+
+
 // Routes CRUD
 router.get('/', stuffCtrl.getAllThings);
 router.post('/', auth, upload.single('image'), compressImage, stuffCtrl.createThing);
