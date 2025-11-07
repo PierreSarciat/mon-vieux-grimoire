@@ -197,3 +197,15 @@ exports.addRating = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
+
+ //            Obtenir les livres les mieux notés
+
+exports.getBestRatedBooks = async (req, res) => {
+  try {
+    const bestBooks = await Thing.find().sort({ averageRating: -1 }).limit(3);
+    res.status(200).json(bestBooks);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
