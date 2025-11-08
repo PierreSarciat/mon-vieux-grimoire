@@ -156,11 +156,7 @@ exports.deleteThing = async (req, res) => {
  
 exports.addRating = async (req, res) => {
   try {
-    console.log('Début addRating');
-    console.log('ID du livre:', req.params.id);
-    console.log('Corps de la requête:', req.body);
-    console.log('Utilisateur authentifié:', req.auth.userId);
-
+    
     const book = await Thing.findById(req.params.id);
     console.log('Livre trouvé:', book);
 
