@@ -29,8 +29,8 @@ exports.getOneThing = async (req, res) => {
 };
 
 
- //            Créer un livre (avec image via multer)
- 
+//            Créer un livre (avec image via multer)
+
 
 exports.createThing = async (req, res) => {
   try {
@@ -65,8 +65,8 @@ exports.createThing = async (req, res) => {
       ...thingData,
       userId: req.auth.userId,
       imageUrl,
-     ratings: thingData.grade ? [{ userId: req.auth.userId, grade: Number(thingData.grade) }] : [],
-  averageRating: thingData.grade ? Number(thingData.grade) : 0,
+      ratings: thingData.grade ? [{ userId: req.auth.userId, grade: Number(thingData.grade) }] : [],
+      averageRating: thingData.grade ? Number(thingData.grade) : 0,
     });
 
     await newThing.save();
@@ -104,6 +104,18 @@ exports.modifyThing = async (req, res) => {
       return res.status(401).json({ message: 'Permission refusée' });
     }
 
+    if (req.file && thing.imageUrl) {
+      const filename = thing.imageUrl.split('/images/')[1];
+      const filePath = path.join(__dirname, '../images', filename);
+
+      try {
+        await fs.promises.unlink(filePath);
+        console.log('Ancienne image supprimée avec succès');
+      } catch (err) {
+        console.error('Erreur lors de la suppression de l’image :', err);
+
+      }
+    }
     const updatedThing = await Thing.findByIdAndUpdate(
       req.params.id,
       { $set: thingObject },
@@ -128,6 +140,8 @@ exports.deleteThing = async (req, res) => {
       return res.status(401).json({ message: 'Utilisateur non autorisé à supprimer ce livre' });
     }
 
+    // Supprime l’image du serveur
+
     const filename = thing.imageUrl.split('/images/')[1];
 
     const imagePath = path.join(imagesPath, filename);
@@ -142,6 +156,8 @@ exports.deleteThing = async (req, res) => {
 
     }
 
+    // Supprime le document MongoDB
+
     const result = await Thing.deleteOne({ _id: req.params.id });
 
     res.status(200).json({ message: 'Livre supprimé avec succès !' });
@@ -152,11 +168,11 @@ exports.deleteThing = async (req, res) => {
 };
 
 
- //        Ajouter une note à un livre
- 
+//        Ajouter une note à un livre
+
 exports.addRating = async (req, res) => {
   try {
-    
+
     const book = await Thing.findById(req.params.id);
     console.log('Livre trouvé:', book);
 
@@ -168,7 +184,7 @@ exports.addRating = async (req, res) => {
     const { grade } = req.body;
     console.log('Note reçue :', grade);
 
-    
+
     // Vérifier si l'utilisateur a déjà noté ce livre 
     const alreadyRated = book.ratings.find(grade => grade.userId.toString() === req.auth.userId);
     console.log('L\'utilisateur a-t-il déjà noté ce livre ?', alreadyRated ? 'Oui' : 'Non');
@@ -177,7 +193,7 @@ exports.addRating = async (req, res) => {
     }
 
     // Ajouter la note avec l'ID de l'utilisateur
-    book.ratings.push({ userId: req.auth.userId, grade});
+    book.ratings.push({ userId: req.auth.userId, grade });
     console.log('Notes après ajout:', book.ratings);
 
     // Recalculer la moyenne
@@ -195,7 +211,7 @@ exports.addRating = async (req, res) => {
 };
 
 
- //            Obtenir les livres les mieux notés
+//            Obtenir les livres les mieux notés
 
 exports.getBestRatedBooks = async (req, res) => {
   try {
