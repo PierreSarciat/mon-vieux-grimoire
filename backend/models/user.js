@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt'); // pour sécuriser le mot de passe
 
 const userSchema = mongoose.Schema({
-  email: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true, match: [/^\S+@\S+\.\S+$/, 'Veuillez entrer un email valide']  },
   password: { type: String, required: true }
 });
 
